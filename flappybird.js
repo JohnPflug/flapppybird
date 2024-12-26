@@ -42,6 +42,16 @@ let gravity = 0.4; // Gravity to pull the bird down (increase it's Y value)
 let gameOver = false;
 let score = 0;
 
+// Sounds:
+let wingSound = new Audio('./sfx_wing.wav');
+let hitSound = new Audio('./sfx_hit.wav');
+hitSound.volume = 0.6;
+let backgroundMusic = new Audio('./bgm_mario.mp3');
+backgroundMusic.loop = true;
+let dieSound = new Audio('./sfx_die.wav');
+let pointSound = new Audio('./sfx_point.wav');
+pointSound.volume = 0.5;
+
 // Board: When the window object (the global object for client-side JavaScript) loads, an anonymous function is called:
 window.onload = function () {
     board = document.getElementById("board"); // Sets the board as the 'board' canvas
@@ -90,6 +100,7 @@ function update() {
     // context.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
     // Check is the bird has fallen below the canvas:
     if (bird.y > board.height) {
+        dieSound.play();
         gameOver = true;
     }
 
@@ -106,10 +117,12 @@ function update() {
         if (!pipe.passed && bird.x > pipe.x + pipe.width) {
             score += 0.5; //0.5 because there are 2 pipes! so 0.5*2 = 1, 1 for each set of pipes
             pipe.passed = true;
+            pointSound.play();
         }
         // Call collision detection function with bird and pipe as arguments, setting game over as true if detected:
         if (detectCollision(bird, pipe)) {
             gameOver = true;
+            hitSound.play(); // Play the hit sound
         }
     }
 
@@ -125,7 +138,9 @@ function update() {
 
     // Game Over screen:
     if (gameOver) {
-        context.fillText("GAME OVER", 5, 90);
+        context.fillText("GAME OVER", 5, 90); // Game over text
+        backgroundMusic.pause(); // Pause music
+        backgroundMusic.currentTime = 0; // Reset background music
     }
 }
 
@@ -161,8 +176,15 @@ function placePipes() {
 function moveBird(event) {
     // Event parameter is the keypress. Code property returns the key code when a keyboard event occurs:
     if (event.code == "Space" || event.code == "ArrowUp") {
+        if (backgroundMusic.paused) {
+            // Music
+            backgroundMusic.play();
+        };
         // Jump:
         velocityY = -6;
+
+        // Play flap wing sound:
+        wingSound.play();
 
         // Reset game to default settings:
         if (gameOver) {
