@@ -11,9 +11,10 @@ let birdHeight = 24; // These birdWidth and birdHeight values (34 and 24) have t
 // Bird's x and y position (co-ordinates):
 let birdX = boardWidth / 8; // Bird's x position will not change
 let birdY = boardHeight / 2;
-let birdImage; // Declare a variable for bird image, to be initialised later
+let birdImages = []; // Array to hold the bird images
+let birdImagesIndex = 0; // Index for bird images
 
-// Create a bird object, with necessary propertie. Assigned values from variables above.
+// Create a bird object, with necessary propertie. Assigned values from variables above
 let bird = {
     x: birdX,
     y: birdY,
@@ -49,14 +50,13 @@ window.onload = function () {
     context = board.getContext("2d"); // Sets the drawing context (2d) for the canvas
 
     // Load images:
-    birdImage = new Image();  // Assigns a new image to birdImage variable.
-    birdImage.src = "./flappybird.png"; // Specify the source (file location) property of the image
-
-    // Assign a callback function to the onload property of the image, which draws the image:
-    birdImage.onload = function () {
-        context.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
+    // Bird:
+    for (let i = 0; i < 4; i++) { // For loop to iterate over the birdImages array;
+        let birdImage = new Image();
+        birdImage.src = `./flappybird${i}.png`;
+        birdImages.push(birdImage);
     }
-
+    // Pipes:
     topPipeImage = new Image(); // Assigns a new image to topPipeImage variable
     topPipeImage.src = "./toppipe.png"; // Specify the source (file location) property of the topPipeImage
     bottomPipeImage = new Image();
@@ -66,6 +66,7 @@ window.onload = function () {
     requestAnimationFrame(update);
     // JavaScript's setInterval() function called with our cllback function 'placePipes' to draw pipes every 1500 ms (1.5 seconds):
     setInterval(placePipes, 1500);
+    setInterval(animateBird, 100); // setInterval() called with a cllback to set the animation speed of the bird;
     // Event Listener for key press to make bird move, with moveBird as a callback:
     document.addEventListener("keydown", moveBird);
 }
@@ -85,7 +86,8 @@ function update() {
     velocityY += gravity;
     // bird.y += velocityY;
     bird.y = Math.max(bird.y + velocityY, 0); // Change the bird's y velocity when jumping, with the max Y value set at 0 (the top of the canvas)
-    context.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
+    context.drawImage(birdImages[birdImagesIndex], bird.x, bird.y, bird.width, bird.height); // Draw bird image from birdImages array using the birdImagesIndex
+    // context.drawImage(birdImage, bird.x, bird.y, bird.width, bird.height);
     // Check is the bird has fallen below the canvas:
     if (bird.y > board.height) {
         gameOver = true;
@@ -178,4 +180,9 @@ function detectCollision(a, b) {
         a.x + a.width > b.x &&
         a.y < b.y + b.height &&
         a.y + a.height > b.y;
+};
+
+function animateBird() {
+    birdImagesIndex++; // Increment birdImagesIndex
+    birdImagesIndex %= birdImages.length; // Circle back to 0 after we reach the length of image array
 };
